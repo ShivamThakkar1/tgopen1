@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title></title>
+	</head>
+	<body>
+		<script type="text/javascript">
+			window.onload = function () {
+				function getParameterByName(name, url = window.location.href) {
+					name = name.replace(/[\[\]]/g, '\\$&');
+					var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+						results = regex.exec(url);
+					if (!results) return null;
+					if (!results[2]) return '';
+					return decodeURIComponent(results[2].replace(/\+/g, ' '));
+				}
+
+				// Base URL structures for Telegram
+				var telegramBaseLink = 't.me/';
+				var telegramInviteLink = 't.me/joinchat/';
+				var https = 'https://';
+				var www = 'www.';
+				var fallbackURL = '';
+				
+				// Get parameters from URL
+				var userFallback = getParameterByName('u'); // User
+				var channelFallback = getParameterByName('c'); // Channel
+				var inviteCode = getParameterByName('i'); // Invite
+
+				// Check for invite code first (highest priority)
+				if (inviteCode) {
+					fallbackURL = telegramInviteLink + inviteCode;
+				} 
+				// If no invite, check for channel link
+				else if (channelFallback) {
+					if (channelFallback.includes(https)) {
+						if (channelFallback.includes(www))
+							fallbackURL = channelFallback.replace(https, '');
+						else fallbackURL = channelFallback.replace(https, www);
+					} else if (!channelFallback.includes(www)) {
+						fallbackURL = telegramBaseLink + channelFallback;
+					}
+				} 
+				// If neither invite nor channel, fallback to user link
+				else if (userFallback) {
+					if (userFallback.includes(https)) {
+						if (userFallback.includes(www))
+							fallbackURL = userFallback.replace(https, '');
+						else fallbackURL = userFallback.replace(https, www);
+					} else if (!userFallback.includes(www)) {
+						fallbackURL = telegramBaseLink + userFallback;
+					}
+				} 
+				// No valid parameters, stop the function
+				else return;
+
+				// Construct the Android and iOS app-specific links
+				var androidApp = `intent://${fallbackURL}#Intent;package=org.telegram.messenger;scheme=https;end`;
+				var iosApp = inviteCode ? `tg://join?invite=${inviteCode}` : `tg://resolve?domain=${fallbackURL}`;
+
+				// Redirect based on device type
+				if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+					window.location.href = iosApp;
+					window.setTimeout(function () {
+						window.location.href = https + fallbackURL;
+					}, 25);
+				} else if (/Android/i.test(navigator.userAgent)) {
+					window.location.href = androidApp;
+					window.setTimeout(function () {
+						window.location.href = https + fallbackURL;
+					}, 25);
+				} else {
+					window.location.href = https + fallbackURL;
+				}
+
+				// Function to kill popup if needed
+				function killPopup() {
+					window.removeEventListener('pagehide', killPopup);
+				}
+
+				window.addEventListener('pagehide', killPopup);
+			};
+		</script>
+	</body>
+</html>
