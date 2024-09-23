@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<meta charset="utf-8" />
-		<title></title>
+		<title>Telegram Redirect</title>
 	</head>
 	<body>
 		<script type="text/javascript">
@@ -18,39 +18,27 @@
 
 				// Base URL structures for Telegram
 				var telegramBaseLink = 't.me/';
-				var telegramInviteLink = 't.me/joinchat/';
 				var https = 'https://';
-				var www = 'www.';
 				var fallbackURL = '';
 				
 				// Get parameters from URL
-				var userFallback = getParameterByName('u'); // User
+				var userFallback = getParameterByName('u'); // User profile
 				var channelFallback = getParameterByName('c'); // Channel
-				var inviteCode = getParameterByName('i'); // Invite
+				var inviteCode = getParameterByName('i'); // Private channel invite
 
 				// Check for invite code first (highest priority)
 				if (inviteCode) {
-					fallbackURL = telegramInviteLink + inviteCode;
+					fallbackURL = telegramBaseLink + '+' + inviteCode; // Private channel invite
 				} 
 				// If no invite, check for channel link
 				else if (channelFallback) {
-					if (channelFallback.includes(https)) {
-						if (channelFallback.includes(www))
-							fallbackURL = channelFallback.replace(https, '');
-						else fallbackURL = channelFallback.replace(https, www);
-					} else if (!channelFallback.includes(www)) {
-						fallbackURL = telegramBaseLink + channelFallback;
-					}
+					// Channels use standard 't.me/CHANNEL_NAME' link
+					fallbackURL = telegramBaseLink + channelFallback;
 				} 
 				// If neither invite nor channel, fallback to user link
 				else if (userFallback) {
-					if (userFallback.includes(https)) {
-						if (userFallback.includes(www))
-							fallbackURL = userFallback.replace(https, '');
-						else fallbackURL = userFallback.replace(https, www);
-					} else if (!userFallback.includes(www)) {
-						fallbackURL = telegramBaseLink + userFallback;
-					}
+					// Users use 't.me/USERNAME'
+					fallbackURL = telegramBaseLink + userFallback;
 				} 
 				// No valid parameters, stop the function
 				else return;
